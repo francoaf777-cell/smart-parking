@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>AI ProjectPilot</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#0d1117;--p:#161b22;--b:#30363d;--t:#e6edf3;--m:#8b949e;--a:#58a6ff;--g:#3fb950;--y:#d29922;--r:#f85149;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fa;--p:#fff;--b:#d0d7de;--t:#1f2328;--m:#59636e;--a:#0969da;--g:#1a7f37;--y:#9a6700;--r:#cf222e}}
+:root[data-theme="dark"]{--bg:#0d1117;--p:#161b22;--b:#30363d;--t:#e6edf3;--m:#8b949e}
+*{box-sizing:border-box}html,body{height:100%;margin:0}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--t);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+#app{display:grid;grid-template-columns:190px 1fr 320px;grid-template-rows:48px 1fr;height:100%}
+header{grid-column:1/4;display:flex;align-items:center;gap:12px;padding:0 14px;border-bottom:1px solid var(--b);background:var(--p)}
+nav{background:var(--p);border-right:1px solid var(--b);padding:8px;overflow:auto}
+main{overflow:auto;padding:18px;min-width:0}
+aside{background:var(--p);border-left:1px solid var(--b);display:flex;flex-direction:column;min-height:0}
+button,input,select,textarea{font:inherit;color:var(--t);background:var(--bg);border:1px solid var(--b);border-radius:6px;padding:6px 10px}
+button{cursor:pointer}button:hover{border-color:var(--a)}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--a)}
+.pri{background:var(--a);color:#fff;border-color:var(--a)}
+nav button{display:block;width:100%;text-align:left;border:0;background:none;margin-bottom:2px}nav button.on{background:var(--bg);color:var(--a)}
+.card{background:var(--p);border:1px solid var(--b);border-radius:8px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.big{font-size:26px;font-weight:600}.mut{color:var(--m)}
+.bar{height:6px;background:var(--b);border-radius:3px;width:120px;overflow:hidden}.bar i{display:block;height:100%;background:var(--g)}
+.tag{font-size:11px;padding:1px 7px;border-radius:10px;border:1px solid var(--b);color:var(--m)}.demo{color:var(--y);border-color:var(--y)}
+table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:6px;border-bottom:1px solid var(--b)}td input{width:80px}
+.wrap{overflow-x:auto}
+pre{background:var(--bg);border:1px solid var(--b);border-radius:6px;padding:12px;overflow:auto;max-width:100%;white-space:pre-wrap}
+textarea.code{width:100%;height:340px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.task{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--b)}
+.st{min-width:104px;font-size:12px}.TODO{color:var(--m)}.IP{color:var(--a)}.BL{color:var(--r)}.DONE{color:var(--g)}
+#chat{flex:1;overflow:auto;padding:12px}.msg{margin-bottom:10px;padding:8px 10px;border-radius:8px;background:var(--bg);white-space:pre-wrap}.msg.u{background:var(--a);color:#fff}
+#modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;padding:16px;z-index:9}#modal.on{display:flex}
+#modal .card{width:min(460px,100%);margin:0}label{display:block;margin:8px 0 2px;color:var(--m);font-size:12px}
+#modal input,#modal select,#modal textarea{width:100%}
+#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--p);border:1px solid var(--a);padding:8px 14px;border-radius:8px;display:none;z-index:10}
+#tg{display:none}
+@media (max-width:980px){#app{grid-template-columns:150px 1fr}aside{position:fixed;right:0;top:48px;bottom:0;width:min(340px,100%);display:none;z-index:5}aside.on{display:flex}#tg{display:inline-block}header{grid-column:1/3}}
+@media (max-width:640px){#app{grid-template-columns:1fr;grid-template-rows:48px auto 1fr}header{grid-column:1}nav{display:flex;overflow-x:auto;border-right:0;border-bottom:1px solid var(--b)}nav button{width:auto;white-space:nowrap}}
+</style></head><body>
+<div id="app">
+<header><b>✈ ProjectPilot</b><span class="tag demo">Demo Mode</span><span id="pn" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span><div class="bar"><i id="pb"></i></div><span id="pp" class="mut"></span><button id="tg" onclick="document.querySelector('aside').classList.toggle('on')" aria-label="Toggle assistant">AI</button></header>
+<nav id="nav" aria-label="Sections"></nav>
+<main id="main"></main>
+<aside><div class="row" style="padding:10px 12px 0"><b>AI Assistant</b><span class="tag demo">simulated</span></div>
+<div id="chat" aria-live="polite"></div>
+<div class="row" style="padding:10px"><input id="q" placeholder="Ask about this project…" style="flex:1;min-width:0" onkeydown="if(event.key==='Enter')ask()"><button class="pri" onclick="ask()">Send</button></div></aside>
+</div>
+<div id="modal" role="dialog" aria-modal="true"><div class="card" id="mb"></div></div><div id="toast" role="status"></div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const mk=(name,desc)=>({name,desc,tasks:[
+{t:"Define requirements",d:"Slots, latency, power source, Wi-Fi coverage.",p:"High",h:2,s:"DONE",dep:[]},
+{t:"Order & verify components",d:"Check ESP32, ultrasonic sensors and servo against BOM.",p:"High",h:3,s:"DONE",dep:[0]},
+{t:"Wire sensors on breadboard",d:"HC-SR04 per slot, level-shift echo to 3.3V.",p:"High",h:4,s:"IN PROGRESS",dep:[1]},
+{t:"Write ESP32 firmware",d:"Read distance, debounce, publish slot state.",p:"High",h:6,s:"TODO",dep:[2]},
+{t:"Set up backend API + DB",d:"REST endpoints and PostgreSQL schema.",p:"Medium",h:8,s:"TODO",dep:[0]},
+{t:"Connect firmware to API",d:"HTTPS POST with device token.",p:"High",h:4,s:"TODO",dep:[3,4]},
+{t:"Build web dashboard",d:"Live slot map and history.",p:"Medium",h:8,s:"TODO",dep:[4]},
+{t:"Field testing & docs",d:"Run test plan, write README.",p:"Medium",h:5,s:"BLOCKED",dep:[5,6]}],
+bom:[["ESP32 DevKit V1",1,6.5,"Microcontroller + Wi-Fi",1],["HC-SR04 ultrasonic sensor",4,1.8,"Detect car per slot",1],["SG90 servo",1,2.5,"Entry barrier",0],["16x2 I2C LCD",1,3.2,"Free-slot display",0],["5V 2A supply",1,4,"Power",1],["Jumper wires + breadboard",1,4,"Prototyping",1],["Custom PCB (small run)",1,8,"Final board",0]].map(r=>({c:r[0],q:r[1],p:r[2],u:r[3],r:!!r[4]})),
+files:[{n:"parking.ino",c:`#include <WiFi.h>
+#include <HTTPClient.h>
+const char* SSID="YOUR_WIFI"; const char* PASS="YOUR_PASS";
+const int TRIG=5, ECHO=18; // use a divider on ECHO (5V -> 3.3V)
+long readCm(){digitalWrite(TRIG,LOW);delayMicroseconds(2);digitalWrite(TRIG,HIGH);delayMicroseconds(10);digitalWrite(TRIG,LOW);
+  long us=pulseIn(ECHO,HIGH,30000);return us/58;}
+void setup(){Serial.begin(115200);pinMode(TRIG,OUTPUT);pinMode(ECHO,INPUT);WiFi.begin(SSID,PASS);
+  while(WiFi.status()!=WL_CONNECTED){delay(500);Serial.print('.');}}
+void loop(){long d=readCm();bool occ=d>0&&d<15;
+  HTTPClient h;h.begin("https://your-api.example.com/api/slots/1");h.addHeader("Content-Type","application/json");
+  h.POST(String("{\\"occupied\\":")+(occ?"true":"false")+"}");h.end();delay(2000);}`},
+{n:"slots.route.ts",c:`import { Router } from "express";
+import { z } from "zod";
+const body = z.object({ occupied: z.boolean() });
+export const slots = Router();
+slots.post("/:id", async (req, res) => {
+  const parsed = body.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json(parsed.error.flatten());
+  // TODO: verify device token, then update slot in PostgreSQL
+  res.json({ id: req.params.id, ...parsed.data });
+});`}],
+tests:[["Sensor reads <15cm as occupied","Place object at 10cm","Slot marked occupied"],["Wi-Fi drop recovery","Disable router 30s","Device reconnects, no crash"],["Invalid API payload","POST {occupied:'x'}","400 with validation error"]],
+nodes:["ESP32 + Sensors","Wi-Fi","Backend API","PostgreSQL","Web/Mobile App","AI Assistant"]});
+let P=[],cur=0,view="dash",chat=[];
+try{const s=JSON.parse(localStorage.getItem("pp1")||"null");if(s){P=s.P;cur=s.cur}}catch(e){}
+if(!P.length)P=[mk("ESP32 Smart Parking System","IoT parking monitor with live slot dashboard.")];
+const save=()=>{try{localStorage.setItem("pp1",JSON.stringify({P,cur}))}catch(e){}};
+const pr=()=>P[cur],prog=p=>Math.round(p.tasks.filter(t=>t.s==="DONE").length/p.tasks.length*100);
+const total=p=>p.bom.reduce((a,b)=>a+b.q*b.p,0);
+const nextT=p=>p.tasks.findIndex(t=>t.s!=="DONE"&&t.dep.every(d=>p.tasks[d].s==="DONE"));
+function toast(m){const t=$("toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2200)}
+const V=["dash","tasks","hardware","architecture","code","testing","docs"],L=["Dashboard","Tasks","Hardware","Architecture","Code","Testing","Documentation"];
+function go(v){view=v;render()}
+function render(){const p=pr();$("pn").textContent=p.name;$("pb").style.width=prog(p)+"%";$("pp").textContent=prog(p)+"%";
+$("nav").innerHTML=V.map((v,i)=>`<button class="${v===view?'on':''}" onclick="go('${v}')">${L[i]}</button>`).join("");
+$("main").innerHTML=({dash,tasks,hardware,architecture,code,testing,docs})[view](p);save()}
+function dash(p){const done=P.filter(x=>prog(x)===100).length,all=P.flatMap(x=>x.tasks),n=nextT(p);
+return `<div class="row"><h2 style="margin:0;flex:1">Dashboard</h2><button class="pri" onclick="wiz()">+ Create New Project</button></div>
+<div class="grid"><div class="card"><div class="mut">Total projects</div><div class="big">${P.length}</div></div><div class="card"><div class="mut">Active</div><div class="big">${P.length-done}</div></div><div class="card"><div class="mut">Completed</div><div class="big">${done}</div></div><div class="card"><div class="mut">Task completion</div><div class="big">${Math.round(all.filter(t=>t.s==="DONE").length/all.length*100)}%</div></div></div>
+<div class="card"><b>Projects</b>${P.map((x,i)=>`<div class="task"><div style="flex:1"><a href="#" onclick="cur=${i};go('tasks');return false">${esc(x.name)}</a><div class="mut">${esc(x.desc)}</div></div><span>${prog(x)}%</span></div>`).join("")}</div>
+<div class="card"><b>What should I do next?</b><p>${n<0?"All available tasks are done or blocked by unfinished dependencies.":`<b>${esc(p.tasks[n].t)}</b> — ${esc(p.tasks[n].d)} <span class="mut">(dependencies complete, ~${p.tasks[n].h}h)</span>`}</p><span class="tag demo">rule-based on task dependencies</span></div>`}
+function tasks(p){const h=p.tasks.reduce((a,t)=>a+t.h,0);return `<h2>Tasks</h2><p class="mut">${prog(p)}% complete · ~${h}h total estimate · click a status to change it. Milestones: M1 Hardware ready (tasks 1-3) · M2 Firmware+API (4-6) · M3 Launch (7-8)</p><div class="card">${p.tasks.map((t,i)=>{const bl=t.dep.some(d=>p.tasks[d].s!=="DONE");return `<div class="task"><button class="st ${t.s.replace(' ','').slice(0,2)==='IN'?'IP':t.s.slice(0,2)==='BL'?'BL':t.s}" onclick="cyc(${i})">${t.s}</button><div style="flex:1"><b>${i+1}. ${esc(t.t)}</b> <span class="tag">${t.p}</span> <span class="tag">${t.h}h</span><div class="mut">${esc(t.d)}</div>${t.dep.length?`<div class="mut">Depends on: ${t.dep.map(d=>d+1).join(", ")}${bl&&t.s!=="DONE"?" ⚠ unmet":""}</div>`:""}</div></div>`}).join("")}</div>`}
+function cyc(i){const o=["TODO","IN PROGRESS","BLOCKED","DONE"],t=pr().tasks[i];t.s=o[(o.indexOf(t.s)+1)%4];render()}
+function hardware(p){return `<h2>Hardware / BOM</h2><div class="card wrap"><table><tr><th>Component</th><th>Qty</th><th>Purpose</th><th>Est. price ($)</th><th>Required</th></tr>${p.bom.map((b,i)=>`<tr><td>${esc(b.c)}</td><td><input type="number" min="0" value="${b.q}" onchange="pr().bom[${i}].q=Math.max(0,+this.value||0);render()" aria-label="Quantity"></td><td>${esc(b.u)}</td><td><input type="number" min="0" step="0.1" value="${b.p}" onchange="pr().bom[${i}].p=Math.max(0,+this.value||0);render()" aria-label="Price"></td><td>${b.r?"Yes":"Optional"}</td></tr>`).join("")}</table><p><b>Total: $${total(p).toFixed(2)}</b></p><span class="tag demo">Prices are editable placeholder estimates, not live data</span></div>`}
+function architecture(p){const n=p.nodes,w=150,g=34;return `<h2>Architecture</h2><div class="card wrap"><svg width="${n.length*(w+g)}" height="90" role="img" aria-label="Architecture diagram">${n.map((x,i)=>`<rect x="${i*(w+g)+2}" y="20" width="${w}" height="50" rx="8" fill="var(--bg)" stroke="var(--a)"/><text x="${i*(w+g)+2+w/2}" y="50" text-anchor="middle" fill="var(--t)" font-size="13">${esc(x)}</text>${i<n.length-1?`<path d="M${i*(w+g)+w+4} 45h${g-6}" stroke="var(--m)" marker-end="url(#ar)"/>`:""}`).join("")}<defs><marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="var(--m)"/></marker></defs></svg></div>`}
+function code(p){const f=p.files[window.fi||0];return `<h2>Code</h2><div class="row"><select onchange="fi=+this.value;render()" aria-label="File">${p.files.map((x,i)=>`<option value="${i}" ${i==(window.fi||0)?"selected":""}>${esc(x.n)}</option>`).join("")}</select><button onclick="navigator.clipboard.writeText(pr().files[fi||0].c).then(()=>toast('Copied'))">Copy</button><button onclick="dl(pr().files[fi||0].n,pr().files[fi||0].c)">Download</button><button onclick="ask('Explain this code')">Explain</button><button onclick="ask('Find bugs in this code')">Find bugs</button></div><textarea class="code" spellcheck="false" oninput="pr().files[fi||0].c=this.value;save()" aria-label="Code editor">${esc(f.c)}</textarea><p class="mut">Starter code is AI-style sample output and has <b>not</b> been compiled or run.</p>`}
+function testing(p){return `<h2>Testing</h2><div class="card wrap"><table><tr><th>Test</th><th>Steps</th><th>Expected</th></tr>${p.tests.map(t=>`<tr>${t.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></div><div class="card"><b>Debugging checklist</b><ul><li>Serial monitor at 115200 baud shows Wi-Fi status?</li><li>ECHO pin level-shifted to 3.3V?</li><li>API reachable over HTTPS from the device network?</li></ul></div>`}
+const readme=p=>`# ${p.name}\n\n${p.desc}\n\n## Hardware\n${p.bom.map(b=>`- ${b.q}× ${b.c} — ${b.u}`).join("\n")}\n\nEstimated cost: $${total(p).toFixed(2)} (estimate)\n\n## Architecture\n${p.nodes.join(" → ")}\n\n## Tasks\n${p.tasks.map((t,i)=>`${i+1}. [${t.s==="DONE"?"x":" "}] ${t.t}`).join("\n")}\n\n## Setup\n1. Flash firmware/parking.ino with your Wi-Fi credentials.\n2. Start the backend and set API URL in firmware.\n\n## Future improvements\n- OTA updates, mobile app, license-plate recognition\n`;
+function docs(p){return `<h2>Documentation</h2><div class="row"><button class="pri" onclick="dl('README.md',readme(pr()))">Export README.md</button></div><pre>${esc(readme(p))}</pre>`}
+function dl(n,c){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([c],{type:"text/plain"}));a.download=n;a.click();toast("Downloaded "+n)}
+function say(t,u){chat.push([t,u]);const c=$("chat");c.innerHTML=chat.map(m=>`<div class="msg ${m[1]?'u':''}">${esc(m[0])}</div>`).join("");c.scrollTop=1e9}
+function ask(pre){const q=pre||$("q").value.trim();if(!q)return;$("q").value="";say(q,1);const p=pr(),l=q.toLowerCase(),n=nextT(p);let a;
+if(/next|do now/.test(l))a=n<0?"No unblocked tasks remain.":`Next: "${p.tasks[n].t}". Its dependencies are done.`;
+else if(/connect|wifi|firebase/.test(l))a="Check: 2.4GHz network only, correct SSID/password, WiFi.status() in serial monitor, and that your endpoint uses valid HTTPS.";
+else if(/cost|price|budget/.test(l))a=`Estimated BOM total is $${total(p).toFixed(2)} across ${p.bom.length} lines (editable estimates).`;
+else if(/bug/.test(l))a="Possible issues: no HTTP error handling, no Wi-Fi reconnect in loop(), and no device auth token.";
+else if(/explain/.test(l))a="The firmware measures distance with an ultrasonic sensor, treats <15cm as occupied, and POSTs the state to the API every 2s.";
+else a=`In "${p.name}" you're ${prog(p)}% done. Try asking: what's next, cost, find bugs, or Wi-Fi help.`;
+setTimeout(()=>say("[DEMO response] "+a),350)}
+function wiz(){const m=$("mb");m.innerHTML=`<h3 style="margin-top:0">New project</h3><label for="wn">Project name</label><input id="wn" maxlength="80"><label for="wd">Idea / description</label><textarea id="wd" rows="3" maxlength="500"></textarea><label for="wt">Type</label><select id="wt"><option>IoT</option><option>Web</option><option>Robotics</option><option>AI/ML</option><option>Embedded</option><option>Full Stack</option></select><label for="wl">Skill level</label><select id="wl"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select><div class="row" style="margin-top:14px"><button class="pri" onclick="gen()">Generate Project</button><button onclick="$('modal').classList.remove('on')">Cancel</button></div><p class="mut">Demo Mode builds from the sample ESP32 template. Real AI generation needs a backend and API key.</p>`;$("modal").classList.add("on");$("wn").focus()}
+function gen(){const n=$("wn").value.trim(),d=$("wd").value.trim();if(!n){$("wn").focus();return toast("Enter a project name")}
+const st=["Analyzing idea","Designing architecture","Identifying components","Creating tasks","Preparing code structure","Building documentation"];let i=0;
+$("mb").innerHTML=`<h3 style="margin-top:0">Generating…</h3><div id="gs"></div>`;
+const iv=setInterval(()=>{$("gs").innerHTML=st.slice(0,i+1).map((s,j)=>`<div>${j<i?"✓":"⏳"} ${s}</div>`).join("");if(i++>=st.length){clearInterval(iv);P.push(mk(n,d||"Demo-generated project"));cur=P.length-1;$("modal").classList.remove("on");go("tasks");toast("Project created (demo data)")}},450)}
+say("[DEMO] Hi! I use the current project's tasks, BOM and code as context. Ask what's next, about cost, or the firmware.");render();
+document.addEventListener("keydown",e=>{if(e.key==="Escape")$("modal").classList.remove("on");if(e.key==="/"&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){e.preventDefault();$("q").focus()}});
+</script></body></html>
